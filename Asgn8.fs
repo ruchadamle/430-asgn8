@@ -71,6 +71,12 @@ let checkExn (name : string) (exnTest : unit -> unit) =
         else
             printfn "FAIL: %s" name
 
+let checkStringEqual (name : string) (actual : string) (expected : string) =
+    if actual = expected then
+        printfn "PASS: %s" name
+    else
+        printfn "FAIL: %s\nactual:%s\nexpected:%s" name actual expected
+
 // --- Interpreter ---
 // Interprets an ExprC
 let rec interp (expr : ExprC) (env : Env) : Value =
@@ -88,6 +94,14 @@ let rec interp (expr : ExprC) (env : Env) : Value =
 // --- PARSER --- (ignored for now, since F# has no sexps)
 
 // --- TESTS ---
+// For testing, there are multiple helpers:
+// - checkEqual: for checking that two values are equal
+// - checkStringEqual: for checking that two strings are equal
+// - checkExn: for checking that some code throws an error containing "VEBG"
+//
+// Use checkStringEqual for testing serialize and topInterp
+// Use checkEqual for testing pretty much evrything else
+
 // Lookup tests
 printfn("--- Lookup Tests ---")
 checkEqual "lookup true" (lookup "true" topEnv)(BoolV true)
@@ -100,12 +114,12 @@ checkExn "lookup missing name" (fun () -> lookup "missing" topEnv |> ignore)
 
 // Serialize tests
 printfn("\n--- Serialize Tests ---")
-checkEqual "serialize number" (StrV (serialize (NumV 5.0))) (StrV "5")
-checkEqual "serialize string" (StrV (serialize (StrV "hi"))) (StrV "\"hi\"")
-checkEqual "serialize true" (StrV (serialize (BoolV true))) (StrV "true")
-checkEqual "serialize false" (StrV (serialize (BoolV false))) (StrV "false")
-checkEqual "serialize prim" (StrV (serialize (PrimV "+"))) (StrV "#<primop>")
-checkEqual "serialize closure" (StrV (serialize (CloV (["x"], IdC "x", [])))) (StrV "#<procedure>")
+checkStringEqual "serialize number" (serialize (NumV 5.0)) "5"
+checkStringEqual "serialize string" (serialize (StrV "hi")) "\"hi\""
+checkStringEqual "serialize true" (serialize (BoolV true)) "true"
+checkStringEqual "serialize false" (serialize (BoolV false)) "false"
+checkStringEqual "serialize prim" (serialize (PrimV "+")) "#<primop>"
+checkStringEqual "serialize closure" (serialize (CloV (["x"], IdC "x", []))) "#<procedure>"
 
 // Interp tests
 printfn("\n--- Interp Tests ---")
