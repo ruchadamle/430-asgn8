@@ -1,0 +1,61 @@
+## Visual Studio / .NET
+bin/
+obj/
+**/bin/
+**/obj/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Rider / IntelliJ
+.idea/
+*.iml
+*.iws
+
+## VS Code
+.vscode/
+
+## NuGet
+packages/
+*.nupkg
+project.lock.json
+project.assets.json
+
+## Publish outputs
+publish/
+artifacts/
+
+## Test results
+TestResults/
+coverage/
+coverage*.xml
+
+## Logs
+*.log
+
+## OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Environment
+.env
+.env.local
+
+## Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+## Temporary
+*.tmp
+~$*
+
+## OneDrive/temp
+.~lock*
+
+## Ignore compiled binaries
+*.exe
+*.dll
+*.pdb
