@@ -85,9 +85,9 @@ let rec interp (expr : ExprC) (env : Env) : Value =
     | NumC n -> NumV n
     | StrC s -> StrV s
     | IfC (t, th, el) -> match interp t env with
-                                            | BoolV true -> interp th env
-                                            | BoolV false -> interp el env
-                                            | _ -> failwith "VEBG expected boolean in if"
+                         | BoolV true -> interp th env
+                         | BoolV false -> interp el env
+                         | _ -> failwith "VEBG expected boolean in if"
     | LamC (paramNames, body) -> CloV (paramNames, body, env)
     | AppC (fpos, args) -> failwith "VEBG stub not implemented NEED TO TEST LATER WHEN IMPLENETED"
     | IdC name -> lookup name env
