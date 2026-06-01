@@ -17,6 +17,7 @@ type Value =
     | BoolV of bool
     | CloV of string list * ExprC * Env
     | PrimV of string
+// F# supports tuples so no need for separate Binding type 
 and Env = (string * Value) list
 
 // Representation of a top-level environment
