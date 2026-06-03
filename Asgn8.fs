@@ -72,11 +72,24 @@ let checkExn (name : string) (exnTest : unit -> unit) =
         else
             printfn "FAIL: %s" name
 
+//used to exntend the environment 
+let extendEnv (paramNames : string list) (argVals : Value list) (env : Env) : Env =
+    List.zip paramNames argVals @ env
+
 let checkStringEqual (name : string) (actual : string) (expected : string) =
     if actual = expected then
         printfn "PASS: %s" name
     else
         printfn "FAIL: %s\nactual:%s\nexpected:%s" name actual expected
+
+// Runs all primitive operations
+let primOps (op : string) ( args : Value list) : Value =
+    match op, args with 
+    | "+", [NumV a; NumV b] -> NumV (a + b)
+    | "-", [NumV a; NumV b] -> NumV (a - b)
+    | "*", [NumV a; NumV b] -> NumV (a * b)
+    | "/", [NumV a; NumV b] -> NumV (a / b)
+    | _ -> failwith "primOps other: primitive not found"
 
 // --- Interpreter ---
 // Interprets an ExprC
@@ -89,7 +102,19 @@ let rec interp (expr : ExprC) (env : Env) : Value =
                          | BoolV false -> interp el env
                          | _ -> failwith "VEBG expected boolean in if"
     | LamC (paramNames, body) -> CloV (paramNames, body, env)
-    | AppC (fpos, args) -> failwith "VEBG stub not implemented NEED TO TEST LATER WHEN IMPLENETED"
+    | AppC (fpos, args) -> 
+        match interp fpos env with 
+        | CloV (paramNames, body, cloEnv ) -> 
+            if List.length paramNames = List.length args 
+            then 
+                let argVals = List.map (fun arg -> interp arg env) args 
+                let newEnv = extendEnv paramNames argVals cloEnv
+                interp body newEnv 
+            else failwith "AppC CloV arity failed"
+        | PrimV op ->  
+            let argVals =  List.map (fun arg -> interp arg env) args //map interp on each arg of args
+            primOps op argVals
+        | other -> failwith "AppC other: unsported AppC argument"
     | IdC name -> lookup name env
 
 // --- PARSER --- (ignored for now, since F# has no sexps)
@@ -132,3 +157,5 @@ checkEqual "interp if true" (interp (IfC (IdC "true", NumC 1.0, NumC 2.0)) topEn
 checkEqual "interp if false" (interp (IfC (IdC "false", NumC 1.0, NumC 2.0)) topEnv) (NumV 2.0)
 checkExn "interp if given non-boolean test" (fun () -> interp (IfC (NumC 0.0, NumC 1.0, NumC 2.0)) topEnv |> ignore)
 checkEqual "interp function" (interp (LamC (["x"], IdC "x")) topEnv) (CloV (["x"], IdC "x", topEnv))
+checkEqual "interp AppC PrimV" (interp (AppC (IdC "+", [NumC 1.0; NumC 2.0])) topEnv) (NumV 3.0)
+checkEqual "interp AppC LamC" (interp (AppC (LamC (["x"], IdC "x"), [NumC 10.0])) topEnv) (NumV 10.0)
