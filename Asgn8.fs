@@ -188,3 +188,28 @@ checkExn "interp if given non-boolean test" (fun () -> interp (IfC (NumC 0.0, Nu
 checkEqual "interp function" (interp (LamC (["x"], IdC "x")) topEnv) (CloV (["x"], IdC "x", topEnv))
 checkEqual "interp AppC PrimV" (interp (AppC (IdC "+", [NumC 1.0; NumC 2.0])) topEnv) (NumV 3.0)
 checkEqual "interp AppC LamC" (interp (AppC (LamC (["x"], IdC "x"), [NumC 10.0])) topEnv) (NumV 10.0)
+
+// Primitive Tests
+checkEqual "prim <= less" (primOps "<=" [NumV 1.0; NumV 2.0]) (BoolV true)
+checkEqual "prim <= equal" (primOps "<=" [NumV 2.0; NumV 2.0]) (BoolV true)
+checkEqual "prim <= greater" (primOps "<=" [NumV 3.0; NumV 2.0]) (BoolV false)
+checkExn "prim <= non-number" (fun () -> primOps "<=" [StrV "a"; NumV 1.0] |> ignore)
+
+checkEqual "prim equal? nums same" (primOps "equal?" [NumV 5.0; NumV 5.0]) (BoolV true)
+checkEqual "prim equal? strs same" (primOps "equal?" [StrV "hi"; StrV "hi"]) (BoolV true)
+checkEqual "prim equal? diff kinds" (primOps "equal?" [NumV 5.0; StrV "5"]) (BoolV false)
+checkEqual "prim equal? primop" (primOps "equal?" [PrimV "+"; PrimV "+"]) (BoolV false)
+checkExn "prim equal? arity" (fun () -> primOps "equal?" [NumV 1.0] |> ignore)
+
+checkEqual "prim substring basic" (primOps "substring" [StrV "hello"; NumV 1.0; NumV 4.0]) (StrV "ell")
+checkEqual "prim substring empty" (primOps "substring" [StrV "hello"; NumV 2.0; NumV 2.0]) (StrV "")
+checkExn "prim substring out of range" (fun () -> primOps "substring" [StrV "hi"; NumV 0.0; NumV 5.0] |> ignore)
+checkExn "prim substring start after stop" (fun () -> primOps "substring" [StrV "hi"; NumV 2.0; NumV 1.0] |> ignore)
+checkExn "prim substring non-string" (fun () -> primOps "substring" [NumV 1.0; NumV 0.0; NumV 1.0] |> ignore)
+
+checkEqual "prim strlen basic" (primOps "strlen" [StrV "hello"]) (NumV 5.0)
+checkEqual "prim strlen empty" (primOps "strlen" [StrV ""]) (NumV 0.0)
+checkExn "prim strlen non-string" (fun () -> primOps "strlen" [NumV 1.0] |> ignore)
+
+checkExn "prim error halts" (fun () -> primOps "error" [StrV "boom"] |> ignore)
+checkExn "prim error arity" (fun () -> primOps "error" [NumV 1.0; NumV 2.0] |> ignore)
