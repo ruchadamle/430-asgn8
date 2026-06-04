@@ -89,6 +89,35 @@ let primOps (op : string) ( args : Value list) : Value =
     | "-", [NumV a; NumV b] -> NumV (a - b)
     | "*", [NumV a; NumV b] -> NumV (a * b)
     | "/", [NumV a; NumV b] -> NumV (a / b)
+    | "<=", [NumV a; NumV (b: float)] -> BoolV (a <= b)
+    | "<=", _ -> failwith "VEBG <=: expected two numbers"
+    | "equal?", [a; b] ->
+        match a, b with
+        | (CloV _ | PrimV _), _ -> BoolV false
+        | _, (CloV _ | PrimV _) -> BoolV false
+        | NumV x, NumV y -> BoolV (x = y)
+        | StrV x, StrV y -> BoolV (x = y)
+        | BoolV x, BoolV y -> BoolV (x = y)
+        | _ -> BoolV false
+    | "equal?", _ -> failwith "VEBG equal?: expected two arguments"
+    | "substring", [StrV s; NumV start; NumV stop] ->
+        let isNat (x : float) = x >= 0.0 && x = floor x
+        if not (isNat start) || not (isNat stop) then
+            failwith "VEBG substring: start and stop must be naturals"
+        else
+            let st = int start
+            let sp = int stop
+            if st > sp then
+                failwith "VEBG substring: start is after stop"
+            elif sp > s.Length then
+                failwith "VEBG substring: index out of range"
+            else
+                StrV (s.Substring(st, sp - st))
+    | "substring", _ -> failwith "VEBG substring: expected (string, natural, natural)"
+    | "strlen", [StrV s] -> NumV (float s.Length)
+    | "strlen", _ -> failwith "VEBG strlen: expected a string"
+    | "error", [v] -> failwith ("VEBG user-error: " + serialize v)
+    | "error", _ -> failwith "VEBG error: expected one argument"
     | _ -> failwith "primOps other: primitive not found"
 
 // --- Interpreter ---
